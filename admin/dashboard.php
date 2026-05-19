@@ -38,7 +38,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $notifStmt->execute();
 
         // Send push notification to all students with target URL
-        $targetUrl = str_contains($action, 'registration') ? '/rectem_portal/student/course-registration.php' : '/rectem_portal/student/notifications.php';
+        $targetUrl = str_contains($action, 'registration') ? BASE_PATH . '/student/course-registration.php' : BASE_PATH . '/student/notifications.php';
         sendPushToAllStudents($conn, $title, $body, $targetUrl);
 
         $logSql = "INSERT INTO audit_logs (actor_role, actor_id, action_type, action_details) VALUES ('admin', ?, ?, ?)";

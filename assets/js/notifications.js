@@ -7,7 +7,7 @@
   'use strict';
 
   const POLL_INTERVAL = 12000; // 12 seconds
-  const BASE_URL = '/rectem_portal';
+  const BASE_URL = window.location.pathname.includes('/rectem_portal/') ? '/rectem_portal' : '';
   let lastNotificationId = 0;
   let pollTimer = null;
   let swRegistration = null;

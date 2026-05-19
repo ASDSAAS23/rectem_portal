@@ -13,9 +13,13 @@ if (isset($_GET['redirect'])) {
 } elseif (isset($_POST['redirect'])) {
     $redirect = $_POST['redirect'];
 }
-// Sanitize: only allow internal redirects within rectem_portal
-if ($redirect !== '' && !str_contains($redirect, '/rectem_portal/')) {
-    $redirect = '';
+// Sanitize: only allow internal redirects within same host
+if ($redirect !== '') {
+    $parsedHost = parse_url($redirect, PHP_URL_HOST);
+    // If it has a host, it must match the current server host. If no host, it's a relative path (allowed)
+    if ($parsedHost && $parsedHost !== $_SERVER['HTTP_HOST']) {
+        $redirect = '';
+    }
 }
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {

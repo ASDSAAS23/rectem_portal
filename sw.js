@@ -1,11 +1,14 @@
 /**
  * RECTEM Portal - Service Worker for Push Notifications
- * v3 - Logo display + click-to-login redirect
+ * v4 - Environment-agnostic (works on localhost AND Render)
+ * BASE path is injected via notification payload, not hardcoded.
  */
 
-const CACHE_VERSION = 'rectem-sw-v3';
-const BASE = '/rectem_portal';
-const LOGO = BASE + '/rectem-logo.png';
+const CACHE_VERSION = 'rectem-sw-v4';
+// Derive base URL from the SW's own location (works at any path)
+const SW_ORIGIN = self.location.origin;
+const SW_BASE   = self.location.pathname.replace('/sw.js', ''); // e.g. '' or '/rectem_portal'
+const LOGO = SW_ORIGIN + SW_BASE + '/rectem-logo.png';
 
 // Install event - immediately activate
 self.addEventListener('install', (event) => {
@@ -26,7 +29,7 @@ self.addEventListener('push', (event) => {
   let data = {
     title: 'RECTEM Portal',
     body: 'You have a new notification.',
-    url: BASE + '/student/notifications.php',
+    url: SW_ORIGIN + SW_BASE + '/student/notifications.php',
   };
 
   if (event.data) {
@@ -45,7 +48,7 @@ self.addEventListener('push', (event) => {
     image: undefined, // No large image — keeps it clean
     vibrate: [200, 100, 200],
     data: {
-      url: data.url || BASE + '/student/notifications.php',
+      url: data.url || SW_ORIGIN + SW_BASE + '/student/notifications.php',
     },
     actions: [
       { action: 'view', title: '👁️ View' },
@@ -69,17 +72,17 @@ self.addEventListener('notificationclick', (event) => {
   if (event.action === 'dismiss') return;
 
   // The target page the user should end up on after login
-  const targetPage = event.notification.data?.url || BASE + '/student/notifications.php';
+  const targetPage = event.notification.data?.url || SW_ORIGIN + SW_BASE + '/student/notifications.php';
 
   // Build the login URL with a redirect parameter
   // If user is already logged in, the redirect page will handle it
-  const loginUrl = BASE + '/login.php?redirect=' + encodeURIComponent(targetPage);
+  const loginUrl = SW_ORIGIN + SW_BASE + '/login.php?redirect=' + encodeURIComponent(targetPage);
 
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
       // Check if there's already a portal window open
       for (const client of clients) {
-        if (client.url.includes('/rectem_portal/') && 'focus' in client) {
+        if (client.url.includes(SW_ORIGIN + SW_BASE) && 'focus' in client) {
           // If already on the portal, navigate directly to the target page
           client.navigate(targetPage);
           return client.focus();

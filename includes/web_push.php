@@ -6,12 +6,23 @@
  */
 
 /**
- * Get OpenSSL config (handles Windows XAMPP missing openssl.cnf issue).
+ * Get OpenSSL config.
+ * On Windows/XAMPP locally, points to the bundled openssl.cnf.
+ * On Linux (Render), OpenSSL is system-configured — no override needed.
  */
 function getOpenSSLConfig() {
     $config = [];
-    if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN' && file_exists('C:/xampp/php/extras/ssl/openssl.cnf')) {
-        $config['config'] = 'C:/xampp/php/extras/ssl/openssl.cnf';
+    if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+        $candidates = [
+            'C:/xampp/php/extras/ssl/openssl.cnf',
+            'C:/Program Files/OpenSSL-Win64/bin/openssl.cfg',
+        ];
+        foreach ($candidates as $path) {
+            if (file_exists($path)) {
+                $config['config'] = $path;
+                break;
+            }
+        }
     }
     return $config;
 }
@@ -146,7 +157,7 @@ function sendPushNotification($subscription, $payload, $vapidKeys) {
     curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_TIMEOUT, 15);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // XAMPP workaround
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);  // Always verify SSL in production
 
     $response = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -171,12 +182,13 @@ function sendPushToStudent($conn, $studentId, $title, $body, $url = null) {
         return; // VAPID not configured yet
     }
 
+    $base = rtrim(getenv('APP_BASE_URL') ?: '', '/');
     $payload = json_encode([
         'title' => $title,
         'body'  => $body,
-        'icon'  => '/rectem_portal/rectem-logo.png',
-        'badge' => '/rectem_portal/rectem-logo.png',
-        'url'   => $url ?? '/rectem_portal/student/notifications.php',
+        'icon'  => $base . '/rectem-logo.png',
+        'badge' => $base . '/rectem-logo.png',
+        'url'   => $url ?? $base . '/student/notifications.php',
         'timestamp' => time(),
     ]);
 
@@ -207,12 +219,13 @@ function sendPushToAllStudents($conn, $title, $body, $url = null) {
         return;
     }
 
+    $base = rtrim(getenv('APP_BASE_URL') ?: '', '/');
     $payload = json_encode([
         'title' => $title,
         'body'  => $body,
-        'icon'  => '/rectem_portal/rectem-logo.png',
-        'badge' => '/rectem_portal/rectem-logo.png',
-        'url'   => $url ?? '/rectem_portal/student/notifications.php',
+        'icon'  => $base . '/rectem-logo.png',
+        'badge' => $base . '/rectem-logo.png',
+        'url'   => $url ?? $base . '/student/notifications.php',
         'timestamp' => time(),
     ]);
 

@@ -64,9 +64,9 @@ if ($target === 'all') {
         $payload = json_encode([
             'title' => $title,
             'body' => $body,
-            'icon' => '/rectem_portal/rectem-logo.png',
-            'badge' => '/rectem_portal/rectem-logo.png',
-            'url' => '/rectem_portal/student/notifications.php',
+            'icon' => BASE_PATH . '/rectem-logo.png',
+            'badge' => BASE_PATH . '/rectem-logo.png',
+            'url' => BASE_PATH . '/student/notifications.php',
             'timestamp' => time(),
         ]);
 
@@ -100,7 +100,7 @@ if ($target === 'all') {
         $stmt->execute();
 
         // Send push
-        sendPushToStudent($conn, $student['id'], $title, $body, '/rectem_portal/student/notifications.php');
+        sendPushToStudent($conn, $student['id'], $title, $body, BASE_PATH . '/student/notifications.php');
         $pushSent++; // Approximate - sendPushToStudent handles internally
     }
 }

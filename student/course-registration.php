@@ -118,7 +118,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $notifStmt->execute();
 
                 // Send push notification to the student's devices with target URL
-                sendPushToStudent($conn, $studentId, $notifTitle, $notifMessage, '/rectem_portal/student/course-records.php');
+                sendPushToStudent($conn, $studentId, $notifTitle, $notifMessage, BASE_PATH . '/student/course-records.php');
 
                 $message = "Course registration submitted successfully.";
                 $messageClass = "success";

@@ -168,9 +168,9 @@ foreach ($studentIds as $studentId) {
 
     // Send push notifications with target URLs
     $pushBody1 = "Your " . $previewMeta["level"] . " " . $previewMeta["semester"] . " results are ready! GPA: " . number_format($gpa, 2) . ". Check your portal now.";
-    sendPushToStudent($conn, $studentId, $title1, $pushBody1, '/rectem_portal/student/result-checker.php');
+    sendPushToStudent($conn, $studentId, $title1, $pushBody1, BASE_PATH . '/student/result-checker.php');
     $pushBody2 = $gpaLabel . " performance (GPA: " . number_format($gpa, 2) . "). " . substr($performanceComment["advice"], 0, 100);
-    sendPushToStudent($conn, $studentId, $title2, $pushBody2, '/rectem_portal/student/notifications.php');
+    sendPushToStudent($conn, $studentId, $title2, $pushBody2, BASE_PATH . '/student/notifications.php');
 }
 
         $message = "Results sent successfully to all matched students.";

@@ -61,7 +61,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_FILES["profile_picture"])) 
                 
                 // Send push notification
                 include_once("../includes/web_push.php");
-                sendPushToStudent($conn, $studentId, $notifTitle, $notifMessage, '/rectem_portal/student/profile.php');
+                sendPushToStudent($conn, $studentId, $notifTitle, $notifMessage, BASE_PATH . '/student/profile.php');
             } else {
                 $message = "Failed to upload image.";
                 $messageClass = "error";
