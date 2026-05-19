@@ -1,0 +1,21 @@
+# Uploaded user files (large binary blobs)
+uploads/
+
+# Scratch / temp diagnostic scripts
+scratch/
+
+# Node / build artifacts (if any)
+node_modules/
+package-lock.json
+
+# OS & editor junk
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# PHP logs
+*.log
+
+# Compiled / cache files
+*.cache
