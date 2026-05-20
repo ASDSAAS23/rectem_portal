@@ -76,12 +76,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["send_all_results"])) 
             $insertSql = "INSERT INTO results
                 (student_id, department_id, course_id, session, semester, course_code, course_title, course_unit, score, grade, grade_point, remark, uploaded_by)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                ON DUPLICATE KEY UPDATE
-                    score = VALUES(score),
-                    grade = VALUES(grade),
-                    grade_point = VALUES(grade_point),
-                    remark = VALUES(remark),
-                    uploaded_by = VALUES(uploaded_by)";
+                ON CONFLICT (student_id, course_id, session, semester) DO UPDATE SET
+                    score = EXCLUDED.score,
+                    grade = EXCLUDED.grade,
+                    grade_point = EXCLUDED.grade_point,
+                    remark = EXCLUDED.remark,
+                    uploaded_by = EXCLUDED.uploaded_by";
             $insertStmt = $conn->prepare($insertSql);
             $insertStmt->bind_param(
                 "iiissssidsdsi",

@@ -68,17 +68,17 @@ function generateVAPIDKeys($conn) {
     $privateKeyB64 = base64url_encode($d);
 
     // Save to database
-    $stmt = $conn->prepare("INSERT INTO portal_settings (setting_key, setting_value) VALUES ('vapid_public_key', ?) ON DUPLICATE KEY UPDATE setting_value = ?");
+    $stmt = $conn->prepare("INSERT INTO portal_settings (setting_key, setting_value) VALUES ('vapid_public_key', ?) ON CONFLICT (setting_key) DO UPDATE SET setting_value = ?");
     $stmt->bind_param("ss", $publicKeyB64, $publicKeyB64);
     $stmt->execute();
 
-    $stmt = $conn->prepare("INSERT INTO portal_settings (setting_key, setting_value) VALUES ('vapid_private_key', ?) ON DUPLICATE KEY UPDATE setting_value = ?");
+    $stmt = $conn->prepare("INSERT INTO portal_settings (setting_key, setting_value) VALUES ('vapid_private_key', ?) ON CONFLICT (setting_key) DO UPDATE SET setting_value = ?");
     $stmt->bind_param("ss", $privateKeyB64, $privateKeyB64);
     $stmt->execute();
 
     // Also save the PEM for signing (base64-encoded to safely store in DB)
     $pemB64 = base64_encode($privatePEM);
-    $stmt = $conn->prepare("INSERT INTO portal_settings (setting_key, setting_value) VALUES ('vapid_private_pem', ?) ON DUPLICATE KEY UPDATE setting_value = ?");
+    $stmt = $conn->prepare("INSERT INTO portal_settings (setting_key, setting_value) VALUES ('vapid_private_pem', ?) ON CONFLICT (setting_key) DO UPDATE SET setting_value = ?");
     $stmt->bind_param("ss", $pemB64, $pemB64);
     $stmt->execute();
 

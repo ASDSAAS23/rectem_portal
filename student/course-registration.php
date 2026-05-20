@@ -96,12 +96,21 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $deleteStmt->execute();
 
                 foreach ($validCourseIds as $courseId) {
-                    $insertSql = "INSERT INTO course_registrations (student_id, course_id, session, semester)
-                                  VALUES (?, ?, ?, ?)";
-                    $insertStmt = $conn->prepare($insertSql);
-                    $insertStmt->bind_param("iiss", $studentId, $courseId, $sessionName, $semester);
-                    $insertStmt->execute();
-                }
+    // Fetch the course_code for this course
+    $courseStmt = $conn->prepare("SELECT course_code FROM courses WHERE id = ?");
+    $courseStmt->bind_param("i", $courseId);
+    $courseStmt->execute();
+    $courseRow = $courseStmt->get_result()->fetch_assoc();
+    $courseCode = $courseRow['course_code'] ?? '';
+
+    // Insert with course_code included
+    $insertSql = "INSERT INTO course_registrations 
+                    (student_id, course_id, course_code, session, semester)
+                  VALUES (?, ?, ?, ?, ?)";
+    $insertStmt = $conn->prepare($insertSql);
+    $insertStmt->bind_param("iisss", $studentId, $courseId, $courseCode, $sessionName, $semester);
+    $insertStmt->execute();
+}
 
                 $updateStudentSql = "UPDATE students SET semester = ? WHERE id = ?";
                 $updateStudentStmt = $conn->prepare($updateStudentSql);
