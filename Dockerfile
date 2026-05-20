@@ -1,7 +1,7 @@
 FROM php:8.2-apache
 
 # Enable Apache mod_rewrite
-RUN a2enmod rewrite
+RUN a2enmod rewrite headers
 
 # Allow .htaccess to work (fixes 404 on all routes)
 RUN sed -i 's/AllowOverride None/AllowOverride All/g' /etc/apache2/apache2.conf
@@ -29,18 +29,12 @@ WORKDIR /var/www/html
 # Copy application source
 COPY . /var/www/html/
 
+# Generate .htaccess directly on the server (avoids Windows encoding issues)
+RUN printf 'Options -Indexes\nRewriteEngine On\nRewriteCond %%{REQUEST_FILENAME} !-f\nRewriteCond %%{REQUEST_FILENAME} !-d\nRewriteRule ^(.*)$ index.php [QSA,L]\n' > /var/www/html/.htaccess
+
 # Set correct permissions
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html
 
 # Expose port 80
 EXPOSE 80
-# Enable Apache MPM prefork tuning
-RUN echo "<IfModule mpm_prefork_module>\n\
-    StartServers 4\n\
-    MinSpareServers 4\n\
-    MaxSpareServers 10\n\
-    MaxRequestWorkers 75\n\
-    MaxConnectionsPerChild 1000\n\
-</IfModule>" > /etc/apache2/conf-available/mpm-tuning.conf \
-&& a2enconf mpm-tuning
