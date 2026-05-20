@@ -4,7 +4,6 @@
  * Called by admin when sending notifications - triggers device push.
  * Also supports sending a test notification.
  */
-session_start();
 include("../includes/db.php");
 include("../includes/auth_check.php");
 include("../includes/web_push.php");

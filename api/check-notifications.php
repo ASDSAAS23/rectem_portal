@@ -3,7 +3,6 @@
  * Notification Polling API
  * Returns new notifications since the student's last seen ID.
  */
-session_start();
 include("../includes/db.php");
 include("../includes/auth_check.php");
 

@@ -35,3 +35,12 @@ RUN chown -R www-data:www-data /var/www/html \
 
 # Expose port 80
 EXPOSE 80
+# Enable Apache MPM prefork tuning
+RUN echo "<IfModule mpm_prefork_module>\n\
+    StartServers 4\n\
+    MinSpareServers 4\n\
+    MaxSpareServers 10\n\
+    MaxRequestWorkers 75\n\
+    MaxConnectionsPerChild 1000\n\
+</IfModule>" > /etc/apache2/conf-available/mpm-tuning.conf \
+&& a2enconf mpm-tuning

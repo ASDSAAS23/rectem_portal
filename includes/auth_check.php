@@ -1,6 +1,5 @@
 <?php
 if (session_status() === PHP_SESSION_NONE) {
-    session_start();
 }
 function requireStudent() {
     if (!isset($_SESSION["user_role"]) || $_SESSION["user_role"] !== "student") {

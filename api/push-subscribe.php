@@ -3,7 +3,6 @@
  * Push Subscription API
  * Handles subscribe and unsubscribe requests from the browser.
  */
-session_start();
 include("../includes/db.php");
 include("../includes/auth_check.php");
 

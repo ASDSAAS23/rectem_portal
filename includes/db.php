@@ -61,11 +61,9 @@ class PgStatement {
 
     /**
      * Mimics mysqli_stmt::bind_param("iss", $a, $b, $c)
-     * Accepts type string and variadic values.
      */
     public function bind_param(string $types, mixed &...$vars): bool {
         $this->paramTypes = str_split($types);
-        // Store references to the variables
         $this->paramValues = [];
         foreach ($vars as $i => &$var) {
             $this->paramValues[$i] = &$var;
@@ -84,7 +82,7 @@ class PgStatement {
                     if (isset($this->paramTypes[$i])) {
                         $pdoType = match ($this->paramTypes[$i]) {
                             'i' => PDO::PARAM_INT,
-                            'd' => PDO::PARAM_STR,  // PDO has no float type
+                            'd' => PDO::PARAM_STR,
                             'b' => PDO::PARAM_LOB,
                             default => PDO::PARAM_STR,
                         };
@@ -100,7 +98,7 @@ class PgStatement {
     }
 
     /**
-     * Mimics mysqli_stmt::get_result() — fetches all rows and returns PgResult.
+     * Mimics mysqli_stmt::get_result()
      */
     public function get_result(): PgResult|false {
         try {
@@ -125,12 +123,8 @@ class PgConnection {
         $this->pdo = $pdo;
     }
 
-    /**
-     * Prepare a SQL statement. Automatically converts MySQL ? placeholders.
-     */
     public function prepare(string $sql): PgStatement|false {
         try {
-            // Convert MySQL-specific syntax to PostgreSQL
             $sql = $this->translateSQL($sql);
             $stmt = $this->pdo->prepare($sql);
             return new PgStatement($stmt);
@@ -140,9 +134,6 @@ class PgConnection {
         }
     }
 
-    /**
-     * Execute a direct query (no parameters).
-     */
     public function query(string $sql): PgResult|false {
         try {
             $sql = $this->translateSQL($sql);
@@ -155,34 +146,20 @@ class PgConnection {
         }
     }
 
-    /**
-     * Mimics mysqli::real_escape_string() — uses PDO::quote() but strips outer quotes.
-     */
     public function real_escape_string(string $str): string {
         $quoted = $this->pdo->quote($str);
-        // PDO::quote() wraps in quotes, strip them for drop-in compatibility
         return substr($quoted, 1, -1);
     }
 
-    /**
-     * Set charset — no-op for PostgreSQL (always UTF-8).
-     */
     public function set_charset(string $charset): bool {
         return true;
     }
 
-    /**
-     * Get the underlying PDO instance (for advanced use).
-     */
     public function getPDO(): PDO {
         return $this->pdo;
     }
 
-    /**
-     * Translate MySQL-specific SQL to PostgreSQL-compatible SQL.
-     */
     private function translateSQL(string $sql): string {
-        // Convert: ALTER TABLE x MODIFY COLUMN y TYPE → ALTER TABLE x ALTER COLUMN y TYPE y TYPE
         if (stripos($sql, 'MODIFY COLUMN') !== false) {
             $sql = preg_replace(
                 '/ALTER\s+TABLE\s+(\S+)\s+MODIFY\s+COLUMN\s+(\S+)\s+(.+)/i',
@@ -190,12 +167,6 @@ class PgConnection {
                 $sql
             );
         }
-
-        // Convert: is_read = 0 / is_read = 1 → is_read = FALSE / is_read = TRUE
-        // (PostgreSQL boolean columns need actual boolean values)
-        // Not needed if columns are INT, only if they are BOOLEAN.
-        // We'll keep them as int-compatible for now.
-
         return $sql;
     }
 }
@@ -217,4 +188,26 @@ try {
     error_log("Supabase connection failed: " . $e->getMessage());
     die(json_encode(['error' => 'Database connection failed.']));
 }
-?>
+
+// ============================================================
+// Database-backed session handler (supports multiple users
+// and multiple containers simultaneously)
+// ============================================================
+
+require_once __DIR__ . '/session_handler.php';
+
+ini_set('session.gc_maxlifetime', 3600); // Sessions last 1 hour
+session_set_cookie_params([
+    'lifetime' => 3600,
+    'path'     => '/',
+    'secure'   => isset($_SERVER['HTTPS']), // HTTPS only in production
+    'httponly' => true,                     // Prevent JS access to session cookie
+    'samesite' => 'Lax',
+]);
+
+$sessionHandler = new DatabaseSessionHandler($pdo);
+session_set_save_handler($sessionHandler, true);
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
